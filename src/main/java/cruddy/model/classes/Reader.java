@@ -32,8 +32,7 @@ public final class Reader implements DaoMethod {
 		codeLines.add(new CodeLine(0, "public List<Widget> " + generateCallName() + " throws SQLException {"));
 		codeLines.add(new CodeLine(0, "try(Connection conn = connectionProvider.provideConnection();"));
 		codeLines.add(new CodeLine(1, "PreparedStatment ps = conn.prepareStatement(\"" + query + "\")) {"));
-		codeLines.addAll(generatePsSetLines());
-		codeLines.add(new CodeLine(2, "ps.setObject(1, uuid);")); // TODO: Generate these based on arguments field
+		codeLines.addAll(generatePsSetLines()); // TODO: This is not properly implemented yet.
 		codeLines.add(new CodeLine(2, "try(ResultSet rs = ps.executeQuery()) {"));
 		codeLines.add(new CodeLine(3, "List<Widget> out = new ArrayList<>();"));
 		codeLines.add(new CodeLine(3, "while(rs.next()) {"));
@@ -53,13 +52,31 @@ public final class Reader implements DaoMethod {
 	// TODO: This is actually a massive undertaking. We're not just asking for ps.setString,Int, etc., we need to map
 	//       pretty much ALL types to the correct set-method.
 	/*
-	 * List of methods and their status:
-	 * -- I'll need to get a full list of java.sql.* stuff here and what types map to them, from them and how.
-	 * -- I'll special case it here first to get something up and running and then refactor it out afterwards.
+	 * Okay, so let's actually plan a bit of stuff out before we start doing things.
+	 * What types does SQL necessarily support? Which Java types does Cruddy have to support as default?
+	 * Let's divide into some areas:
+	 * Text: CHAR, VARCHAR vs String - setString(String, String);
+	 * 
+	 * Numbers: Decimal, Floating point, Integer.
+	 * Decimals: DECIMAL vs BigDecimal - setBigDecimal(String, BigDecimal)
+	 * Floating point: REAL, DOUBLE vs float, double - setReal(String, float), setDouble(String, double);
+	 * Integers: BIGINT, INTEGER - int, long - setInteger(String, int), setLong(String, long); (Others would have to be converted to int first.)
+	 * 
+	 * Dates/Times: Date, Time, DateTime, TimeStamp vs java.util.Calendar, java.util.Date, java.time.*, java.sql.*, where * is the relevant classes. - setDate(String, java.sql.Date), setTime(String, java.sql.Time), setTimestamp(String, java.sql.Timestamp) + conversions.
+	 * 
+	 * Binary stuff: FOR LATER
 	 */
-	private Collection<? extends CodeLine> generatePsSetLines() {
-		// TODO Auto-generated method stub
-		return null;
+	private Collection<CodeLine> generatePsSetLines() {
+		List<CodeLine> out = new ArrayList<>();
+		PSSetArgument s = PSSAFactory.create();
+		
+		int position = 0;
+		for(Argument arg : arguments) {
+			++position;
+			out.add(s.generate(arg, position));
+		}
+		
+		return out;
 	}
 
 	private String generateName() {
