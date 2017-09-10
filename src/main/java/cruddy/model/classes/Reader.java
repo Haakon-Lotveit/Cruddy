@@ -29,7 +29,7 @@ public final class Reader implements DaoMethod {
 		final int priority = 100;
 		final String name = generateName();
 		final List<CodeLine> codeLines = new ArrayList<>();
-		codeLines.add(new CodeLine(0, "public List<Widget> " + name + " throws SQLException {"));
+		codeLines.add(new CodeLine(0, "public List<Widget> " + generateCallName() + " throws SQLException {"));
 		codeLines.add(new CodeLine(0, "try(Connection conn = connectionProvider.provideConnection();"));
 		codeLines.add(new CodeLine(1, "PreparedStatment ps = conn.prepareStatement(\"" + query + "\")) {"));
 		codeLines.addAll(generatePsSetLines());
@@ -54,6 +54,8 @@ public final class Reader implements DaoMethod {
 	//       pretty much ALL types to the correct set-method.
 	/*
 	 * List of methods and their status:
+	 * -- I'll need to get a full list of java.sql.* stuff here and what types map to them, from them and how.
+	 * -- I'll special case it here first to get something up and running and then refactor it out afterwards.
 	 */
 	private Collection<? extends CodeLine> generatePsSetLines() {
 		// TODO Auto-generated method stub
@@ -67,6 +69,15 @@ public final class Reader implements DaoMethod {
 		sb.append(String.join(", ", arguments.stream().map(Argument::getType).collect(toList())));
 		sb.append(")");
 
+		return sb.toString();
+	}
+	
+	private String generateCallName() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(methodName).append("(");
+		sb.append(String.join(", ", arguments.stream().map(arg -> arg.getType() + " " + arg.getName()).collect(toList())));
+		sb.append(")");
+		
 		return sb.toString();
 	}
 }
