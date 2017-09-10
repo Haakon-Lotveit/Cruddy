@@ -1,0 +1,61 @@
+grammar Cruddy;
+
+// TODO: There is no support for primitive datatypes.
+// TODO: There is no support for array types.
+
+// Lexer rules for tokens
+
+// Keyword literals
+TYPE_LITERAL: 'type';
+FIELDS_LITERAL: 'fields';
+READERS_LITERAL: 'readers';
+DELETERS_LITERAL: 'deleters';
+QUERY_LITERAL: 'query';
+ARGS_LITERAL: 'args';
+
+// Special characters
+LT: '<' ;
+GT: '>' ;
+LPAREN: '(' ;
+RPAREN: ')' ;
+COLON: ':' ;
+QUOTE: '"' ;
+
+// Types
+STRING_LITERAL: QUOTE ( '\\"' | . )*? QUOTE ;
+CLASSNAME_TOKEN: [A-Z][a-zA-Z0-9_]* ;
+IDENTIFIER_TOKEN: [a-z_][a-zA-Z0-9_]* ;
+
+// Parser rules.
+// The tree-rules.
+crudExpression: TYPE_LITERAL typeName LPAREN fields readers deleters RPAREN ;
+typeName: CLASSNAME_TOKEN ;
+
+fields: FIELDS_LITERAL LPAREN fieldDeclaration+ RPAREN ;
+readers: READERS_LITERAL LPAREN readerDeclaration+ RPAREN ;
+deleters: DELETERS_LITERAL LPAREN deleterDeclaration+ RPAREN ;
+
+fieldDeclaration: fieldType fieldName fieldDBKey ;
+readerDeclaration: IDENTIFIER_TOKEN COLON
+                   QUERY_LITERAL COLON query
+		   ARGS_LITERAL COLON LPAREN variable+ RPAREN ;
+
+deleterDeclaration: IDENTIFIER_TOKEN COLON
+                    QUERY_LITERAL COLON query
+		    ARGS_LITERAL COLON LPAREN variable+ RPAREN ;
+		    
+
+query: STRING_LITERAL ;
+variable: fieldType fieldName;
+
+
+fieldType: objectIdentifier | primitiveType ;
+objectIdentifier: (IDENTIFIER_TOKEN '.')* CLASSNAME_TOKEN genericType? ;
+primitiveType: 'boolean' | 'byte' | 'char' | 'short' | 'int' | 'long' | 'float' | 'double' ;
+
+fieldName: IDENTIFIER_TOKEN ;
+fieldDBKey: STRING_LITERAL ;
+genericType: LT CLASSNAME_TOKEN GT ;
+
+WS: [ \r\t\n]+ -> skip ;
+

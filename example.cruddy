@@ -1,0 +1,14 @@
+type Widget (
+  fields (
+    String name "widget_name"
+    int storedAmount "storage_amount"
+    LocalDateTime lastUpdated "last_updated")
+  readers (
+    getByUuid:
+      query: "SELECT * FROM Widget WHERE id = ?"
+      args: (UUID id))
+  deleters (
+    deleteByUuid:
+      query: "DELETE FROM Widget WHERE id = ?"
+      args: (UUID id)))
+

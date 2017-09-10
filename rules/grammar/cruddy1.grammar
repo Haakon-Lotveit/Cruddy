@@ -1,0 +1,6 @@
+grammar Cruddy;
+
+// General definitions (strings, argument pairs, etc.
+stringLiteral: '"' ( '\\"' | . )*? '"' ;
+
+WS: [ \r\t\n]+ -> skip ;
